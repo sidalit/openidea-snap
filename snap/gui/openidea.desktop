@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=OpenIDEA
+Comment=Edit code and manage development projects
+Exec=openidea %F
+Icon=${SNAP}/meta/gui/openidea.png
+Terminal=false
+Type=Application
+Categories=Development;IDE;
+MimeType=text/plain;inode/directory;
+StartupWMClass=openidea

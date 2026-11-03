@@ -1,0 +1,15 @@
+Keep the packaged tools on PATH in the integrated terminal.
+
+--- a/crates/ide-terminal/src/lib.rs
++++ b/crates/ide-terminal/src/lib.rs
+@@ -519,8 +519,8 @@ pub fn resolve_shell(shell: Option<&str>, args: &[String]) -> (String, Vec<String>)
+     if !args.is_empty() {
+         return (shell, args.to_vec());
+     }
+-    let login =
+-        matches!(shell_title(&shell).as_str(), "zsh" | "bash" | "sh" | "fish" | "ksh" | "dash" | "tcsh" | "csh");
++    let login = std::env::var_os("OPENIDEA_SKIP_SHELL_ENV").is_none()
++        && matches!(shell_title(&shell).as_str(), "zsh" | "bash" | "sh" | "fish" | "ksh" | "dash" | "tcsh" | "csh");
+     let args = if login && cfg!(unix) { vec!["-l".to_owned()] } else { Vec::new() };
+     (shell, args)
+ }
