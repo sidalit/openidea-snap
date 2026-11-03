@@ -1,0 +1,97 @@
+name: openidea
+base: core26
+version: '0.1.39'
+title: OpenIDEA
+icon: snap/gui/openidea.png
+summary: A desktop IDE with code intelligence, Git and remote development
+description: |
+  OpenIDEA is a Rust and Tauri development environment with an IntelliJ-style
+  interface, multi-language code intelligence, an integrated terminal, Git,
+  database tools and remote development over SSH.
+
+  This strictly confined snap can edit accessible projects and download
+  supported language tools. Host SDKs, coding agents and Docker integration
+  are unavailable. OpenIDEA is not affiliated with JetBrains.
+license: Apache-2.0
+grade: stable
+confinement: strict
+website: https://github.com/l0ng-ai/openidea
+source-code:
+  - https://github.com/l0ng-ai/openidea
+  - https://github.com/sidalit/openidea-snap
+issues:
+  - https://github.com/l0ng-ai/openidea/issues
+  - https://github.com/sidalit/openidea-snap/issues
+contact: https://github.com/sidalit/openidea-snap/issues
+
+platforms:
+  amd64:
+  arm64:
+
+slots:
+  single-instance:
+    interface: dbus
+    bus: session
+    name: ai.l0ng.openidea.SingleInstance
+
+apps:
+  openidea:
+    command: bin/openidea
+    extensions: [gnome]
+    slots: [single-instance]
+    plugs:
+      - home
+      - network
+      - network-bind
+      - removable-media
+    environment:
+      PATH: $SNAP/bin:$SNAP/usr/bin:$PATH
+      GIT_EXEC_PATH: $SNAP/usr/lib/git-core
+      GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
+      OPENIDEA_SKIP_SHELL_ENV: '1'
+      OPENIDEA_UPDATE_ENDPOINT: ''
+
+parts:
+  pnpm:
+    plugin: nil
+    build-snaps:
+      - node/22/stable
+    override-build: |
+      npm install --global --prefix "$CRAFT_PART_INSTALL" pnpm@11
+    prime: ['-*']
+
+  openidea:
+    plugin: rust
+    source: https://github.com/l0ng-ai/openidea.git
+    source-tag: v$SNAPCRAFT_PROJECT_VERSION
+    source-depth: 1
+    rust-channel: stable
+    after: [pnpm]
+    build-environment:
+      - PATH: $CRAFT_STAGE/bin:$PATH
+      - CARGO_BUILD_JOBS: $CRAFT_PARALLEL_BUILD_COUNT
+    build-packages:
+      - build-essential
+      - cmake
+      - git
+      - libdbus-1-dev
+      - patch
+      - pkg-config
+    stage-packages:
+      - bzip2
+      - curl
+      - git
+      - openssh-client
+      - xz-utils
+    override-build: |
+      pnpm install --frozen-lockfile
+      pnpm tauri build --no-bundle \
+        --config '{"plugins":{"updater":{"endpoints":[]}}}' -- --locked
+
+      install -Dm755 target/release/openidea "$CRAFT_PART_INSTALL/bin/openidea"
+      install -Dm644 "$CRAFT_PROJECT_DIR/snap/gui/openidea.png" \
+        "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/openidea.png"
+      install -Dm644 LICENSE NOTICE THIRD_PARTY_LICENSES.md \
+        -t "$CRAFT_PART_INSTALL/usr/share/doc/openidea"
+    prime:
+      - -usr/share/man
