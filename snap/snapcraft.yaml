@@ -1,6 +1,6 @@
 name: openidea
 base: core26
-version: '0.1.39'
+version: '0.1.40'
 title: OpenIDEA
 icon: snap/gui/openidea.png
 summary: A desktop IDE with code intelligence, Git and remote development
