@@ -1,6 +1,6 @@
 name: openidea
 base: core26
-version: '0.1.39'
+version: '0.1.40'
 title: OpenIDEA
 icon: snap/gui/openidea.png
 summary: A desktop IDE with code intelligence, Git and remote development
@@ -70,6 +70,10 @@ parts:
     build-environment:
       - PATH: $CRAFT_STAGE/bin:$PATH
       - CARGO_BUILD_JOBS: $CRAFT_PARALLEL_BUILD_COUNT
+      # Fat LTO runs the 16 GB arm64 runners out of memory while linking.
+      # Upstream switched to thin LTO after v0.1.40 (l0ng-ai/openidea#2366);
+      # drop this once the packaged release includes that change.
+      - CARGO_PROFILE_RELEASE_LTO: thin
     build-packages:
       - build-essential
       - cmake
